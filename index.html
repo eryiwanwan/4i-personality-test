@@ -35,6 +35,7 @@
   .options{display:flex;flex-direction:column;gap:10px;}
   .opt{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;transition:all .15s ease;background:#fff;}
   .opt:hover{border-color:var(--accent);background:var(--accent-soft);}
+  .opt:active{transform:scale(0.97);}
   .opt .key{flex:none;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted);margin-top:1px;}
   .opt.selected{border-color:var(--accent);background:var(--accent-soft);}
   .opt.selected .key{background:var(--accent);border-color:var(--accent);color:#fff;}
@@ -91,6 +92,27 @@
   .x-icon svg{width:11px;height:11px;}
   .footnote{text-align:center;font-size:12px;color:var(--muted);margin-top:12px;}
   .hidden{display:none!important;}
+
+  /* ===== 首页丰富内容 ===== */
+  .home-dims{margin-top:26px;padding-top:22px;border-top:1px solid var(--line);}
+  .home-dims-title{font-size:14px;font-weight:700;text-align:center;margin-bottom:14px;color:var(--ink);}
+  .home-dims-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .hd-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 8px;border:1.5px solid var(--line);border-radius:12px;background:#faf9f6;}
+  .hd-item b{font-size:18px;font-weight:800;color:var(--accent);}
+  .hd-item span{font-size:11px;color:var(--muted);}
+
+  .home-types{margin-top:24px;padding-top:22px;border-top:1px solid var(--line);}
+  .home-types-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .ht-cell{padding:10px 4px;border-radius:10px;text-align:center;font-size:11px;font-weight:700;color:#fff;cursor:default;transition:transform .12s ease;box-shadow:0 2px 6px rgba(0,0,0,.08);}
+  .ht-cell:hover{transform:translateY(-2px);}
+  .ht-cell .ht-code{font-size:11px;letter-spacing:.5px;opacity:.95;}
+  .ht-cell .ht-name{font-size:9px;font-weight:400;opacity:.8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  /* 音乐按钮 */
+  .music-btn{position:fixed;top:14px;right:14px;z-index:998;width:40px;height:40px;border-radius:50%;border:none;background:var(--card);color:var(--accent);box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform .15s ease;}
+  .music-btn:hover{transform:scale(1.1);}
+  .music-btn.playing{animation:musicSpin 3s linear infinite;}
+  @keyframes musicSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 
   /* 分享图预览弹窗 */
   .share-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
@@ -151,6 +173,7 @@
 </style>
 </head>
 <body>
+<button class="music-btn" id="music-btn" onclick="toggleMusic()" title="背景音乐">🔇</button>
 <div class="wrap">
   <header>
     <div class="logo">4i</div>
@@ -179,7 +202,22 @@
 
     <button class="btn primary" style="width:100%;" id="btn-start" onclick="start()" disabled>开始测试</button>
 
-    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:18px;">※ 本测试仅供娱乐参考，结果不构成任何关系、心理或医疗建议。</p>
+    <!-- 首页丰富：维度说明 -->
+    <div class="home-dims">
+      <div class="home-dims-title">四个维度，拼出你的 4i 人格</div>
+      <div class="home-dims-grid">
+        <div class="hd-item"><b>L</b> 落点层面<span>精神 ↔ 生理</span></div>
+        <div class="hd-item"><b>A</b> 主导气质<span>霸道 ↔ 温柔</span></div>
+        <div class="hd-item"><b>F</b> 角色稳定<span>固定 ↔ 互攻</span></div>
+        <div class="hd-item"><b>E</b> 表达方式<span>进攻 ↔ 引诱</span></div>
+      </div>
+    </div>
+
+    <!-- 首页丰富：16 型预览 -->
+    <div class="home-types">
+      <div class="home-dims-title">16 型人格 · 攻受双面</div>
+      <div class="home-types-grid" id="home-types-grid"></div>
+    </div>
   </div>
 
   <!-- 答题页 -->
@@ -538,6 +576,168 @@ const DIM_META = [
   {key:"E",pos0:"进攻",pos1:"引诱"},
 ];
 
+/* ============ 背景音乐（Web Audio 合成舒缓环境音） ============ */
+let audioCtx = null;
+let musicNodes = null;
+let musicPlaying = false;
+
+function initAudio(){
+  if(audioCtx) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return;
+  audioCtx = new AC();
+
+  // 主增益
+  const master = audioCtx.createGain();
+  master.gain.value = 0.0;
+  master.connect(audioCtx.destination);
+
+  // 铺底和弦垫（柔和三和弦循环）
+  const padGain = audioCtx.createGain();
+  padGain.gain.value = 0.16;
+  padGain.connect(master);
+
+  // 用低频振荡器+滤波做一个持续的音垫
+  const chords = [
+    [261.63, 329.63, 392.00], // C
+    [220.00, 261.63, 329.63], // Am
+    [196.00, 246.94, 293.66], // G
+    [174.61, 220.00, 261.63], // F
+  ];
+  const oscs = [];
+  chords.forEach((freqs, ci) => {
+    freqs.forEach(f => {
+      const o = audioCtx.createOscillator();
+      o.type = "sine";
+      o.frequency.value = f;
+      const g = audioCtx.createGain();
+      g.gain.value = 0;
+      // 每个和弦淡入淡出
+      const start = audioCtx.currentTime + ci * 4;
+      g.gain.setValueAtTime(0, start);
+      g.gain.linearRampToValueAtTime(0.05, start + 1.5);
+      g.gain.setValueAtTime(0.05, start + 3.5);
+      g.gain.linearRampToValueAtTime(0, start + 5);
+      o.connect(g);
+      g.connect(padGain);
+      o.start(start);
+      o.stop(start + 5);
+      oscs.push(o);
+    });
+  });
+
+  // 循环和弦：每 16 秒重来一轮
+  function schedulePad(){
+    const base = audioCtx.currentTime;
+    chords.forEach((freqs, ci) => {
+      freqs.forEach(f => {
+        const o = audioCtx.createOscillator();
+        o.type = "sine";
+        o.frequency.value = f;
+        const g = audioCtx.createGain();
+        const st = base + ci * 4;
+        g.gain.setValueAtTime(0, st);
+        g.gain.linearRampToValueAtTime(0.04, st + 1.5);
+        g.gain.setValueAtTime(0.04, st + 3.5);
+        g.gain.linearRampToValueAtTime(0, st + 5);
+        o.connect(g); g.connect(padGain);
+        o.start(st); o.stop(st + 5);
+      });
+    });
+  }
+
+  // 柔和的高音铃（点缀）
+  const bellGain = audioCtx.createGain();
+  bellGain.gain.value = 0.05;
+  bellGain.connect(master);
+  function scheduleBell(){
+    const notes = [523.25, 659.25, 783.99, 659.25];
+    const st = audioCtx.currentTime;
+    notes.forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      o.type = "sine";
+      o.frequency.value = f;
+      const g = audioCtx.createGain();
+      const t = st + i * 4 + 2;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.05, t + 0.3);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+      o.connect(g); g.connect(bellGain);
+      o.start(t); o.stop(t + 2.5);
+    });
+  }
+
+  // 定时调度
+  let padTimer = setInterval(schedulePad, 16000);
+  let bellTimer = setInterval(scheduleBell, 16000);
+  schedulePad();
+  scheduleBell();
+
+  musicNodes = { master, padGain, bellGain, timers:[padTimer, bellTimer] };
+}
+
+function toggleMusic(){
+  const btn = document.getElementById("music-btn");
+  initAudio();
+  if(!audioCtx){ return; }
+  if(audioCtx.state === "suspended"){ audioCtx.resume(); }
+  if(musicPlaying){
+    // 停止：淡出
+    musicNodes.master.gain.cancelScheduledValues(audioCtx.currentTime);
+    musicNodes.master.gain.setValueAtTime(musicNodes.master.gain.value, audioCtx.currentTime);
+    musicNodes.master.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+    btn.textContent = "🔇";
+    btn.classList.remove("playing");
+    musicPlaying = false;
+  } else {
+    // 播放：淡入
+    musicNodes.master.gain.cancelScheduledValues(audioCtx.currentTime);
+    musicNodes.master.gain.setValueAtTime(musicNodes.master.gain.value, audioCtx.currentTime);
+    musicNodes.master.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 1.2);
+    btn.textContent = "🎵";
+    btn.classList.add("playing");
+    musicPlaying = true;
+  }
+}
+
+/* ============ 点击音效 ============ */
+function playClick(){
+  if(!audioCtx){ return; }
+  if(audioCtx.state === "suspended"){ audioCtx.resume(); }
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = "sine";
+  o.frequency.setValueAtTime(660, audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.08);
+  g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime + 0.13);
+}
+
+/* ============ 首页：16 型预览填充 ============ */
+function renderHomeTypes(){
+  const grid = document.getElementById("home-types-grid");
+  if(!grid) return;
+  const codes = Object.keys(TYPES);
+  grid.innerHTML = "";
+  codes.forEach(code => {
+    const t = TYPES[code];
+    const cell = document.createElement("div");
+    cell.className = "ht-cell";
+    cell.style.background = t.c;
+    const codeDiv = document.createElement("div");
+    codeDiv.className = "ht-code";
+    codeDiv.textContent = code;
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "ht-name";
+    nameDiv.textContent = t.attack;
+    cell.appendChild(codeDiv);
+    cell.appendChild(nameDiv);
+    grid.appendChild(cell);
+  });
+}
+
 let idx = 0;
 let answers = new Array(QUESTIONS.length).fill(null);
 let role = null; // 'attack' | 'receive'
@@ -549,6 +749,7 @@ function pickRole(r){
   $("role-attack").classList.toggle("selected", r==="attack");
   $("role-receive").classList.toggle("selected", r==="receive");
   $("btn-start").disabled = false;
+  playClick();
 }
 
 function start(){
@@ -587,7 +788,14 @@ function render(){
     span.textContent = txt;
     div.appendChild(key);
     div.appendChild(span);
-    div.onclick = () => { answers[idx] = i; render(); };
+    div.onclick = () => {
+      // 点击感：缩放动画 + 音效
+      playClick();
+      div.style.transform = "scale(0.97)";
+      setTimeout(() => { div.style.transform = ""; }, 120);
+      answers[idx] = i;
+      render();
+    };
     optBox.appendChild(div);
   });
 
@@ -1047,6 +1255,7 @@ function closeShareModal(){
 
 // 点击弹窗背景关闭
 document.addEventListener("DOMContentLoaded", function(){
+  renderHomeTypes();
   const modal = document.getElementById("share-modal");
   modal.addEventListener("click", function(e){
     if(e.target === modal) closeShareModal();
