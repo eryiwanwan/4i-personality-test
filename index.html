@@ -108,12 +108,6 @@
   .ht-cell .ht-code{font-size:11px;letter-spacing:.5px;opacity:.95;}
   .ht-cell .ht-name{font-size:9px;font-weight:400;opacity:.8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-  /* 音乐按钮 */
-  .music-btn{position:fixed;top:14px;right:14px;z-index:998;width:40px;height:40px;border-radius:50%;border:none;background:var(--card);color:var(--accent);box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform .15s ease;}
-  .music-btn:hover{transform:scale(1.1);}
-  .music-btn.playing{animation:musicSpin 3s linear infinite;}
-  @keyframes musicSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-
   /* 分享图预览弹窗 */
   .share-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
   .share-modal .modal-box{background:#fff;border-radius:20px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
@@ -173,7 +167,6 @@
 </style>
 </head>
 <body>
-<button class="music-btn" id="music-btn" onclick="toggleMusic()" title="背景音乐">🔇</button>
 <div class="wrap">
   <header>
     <div class="logo">4i</div>
@@ -258,7 +251,7 @@
 
       <div class="actions">
         <button class="btn ghost" onclick="restart()">重新测试</button>
-        <button class="btn primary" onclick="saveShareCard()">保存分享图</button>
+        <button class="btn primary" onclick="saveShareCard()">保存到相册</button>
       </div>
       <div class="actions" style="margin-top:10px;">
         <button class="btn ghost" style="flex:none;margin:0 auto;" onclick="previewShareCard()">预览分享图</button>
@@ -576,133 +569,14 @@ const DIM_META = [
   {key:"E",pos0:"进攻",pos1:"引诱"},
 ];
 
-/* ============ 背景音乐（Web Audio 合成舒缓环境音） ============ */
-let audioCtx = null;
-let musicNodes = null;
-let musicPlaying = false;
-
-function initAudio(){
-  if(audioCtx) return;
-  const AC = window.AudioContext || window.webkitAudioContext;
-  if(!AC) return;
-  audioCtx = new AC();
-
-  // 主增益
-  const master = audioCtx.createGain();
-  master.gain.value = 0.0;
-  master.connect(audioCtx.destination);
-
-  // 铺底和弦垫（柔和三和弦循环）
-  const padGain = audioCtx.createGain();
-  padGain.gain.value = 0.16;
-  padGain.connect(master);
-
-  // 用低频振荡器+滤波做一个持续的音垫
-  const chords = [
-    [261.63, 329.63, 392.00], // C
-    [220.00, 261.63, 329.63], // Am
-    [196.00, 246.94, 293.66], // G
-    [174.61, 220.00, 261.63], // F
-  ];
-  const oscs = [];
-  chords.forEach((freqs, ci) => {
-    freqs.forEach(f => {
-      const o = audioCtx.createOscillator();
-      o.type = "sine";
-      o.frequency.value = f;
-      const g = audioCtx.createGain();
-      g.gain.value = 0;
-      // 每个和弦淡入淡出
-      const start = audioCtx.currentTime + ci * 4;
-      g.gain.setValueAtTime(0, start);
-      g.gain.linearRampToValueAtTime(0.05, start + 1.5);
-      g.gain.setValueAtTime(0.05, start + 3.5);
-      g.gain.linearRampToValueAtTime(0, start + 5);
-      o.connect(g);
-      g.connect(padGain);
-      o.start(start);
-      o.stop(start + 5);
-      oscs.push(o);
-    });
-  });
-
-  // 循环和弦：每 16 秒重来一轮
-  function schedulePad(){
-    const base = audioCtx.currentTime;
-    chords.forEach((freqs, ci) => {
-      freqs.forEach(f => {
-        const o = audioCtx.createOscillator();
-        o.type = "sine";
-        o.frequency.value = f;
-        const g = audioCtx.createGain();
-        const st = base + ci * 4;
-        g.gain.setValueAtTime(0, st);
-        g.gain.linearRampToValueAtTime(0.04, st + 1.5);
-        g.gain.setValueAtTime(0.04, st + 3.5);
-        g.gain.linearRampToValueAtTime(0, st + 5);
-        o.connect(g); g.connect(padGain);
-        o.start(st); o.stop(st + 5);
-      });
-    });
-  }
-
-  // 柔和的高音铃（点缀）
-  const bellGain = audioCtx.createGain();
-  bellGain.gain.value = 0.05;
-  bellGain.connect(master);
-  function scheduleBell(){
-    const notes = [523.25, 659.25, 783.99, 659.25];
-    const st = audioCtx.currentTime;
-    notes.forEach((f, i) => {
-      const o = audioCtx.createOscillator();
-      o.type = "sine";
-      o.frequency.value = f;
-      const g = audioCtx.createGain();
-      const t = st + i * 4 + 2;
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.05, t + 0.3);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
-      o.connect(g); g.connect(bellGain);
-      o.start(t); o.stop(t + 2.5);
-    });
-  }
-
-  // 定时调度
-  let padTimer = setInterval(schedulePad, 16000);
-  let bellTimer = setInterval(scheduleBell, 16000);
-  schedulePad();
-  scheduleBell();
-
-  musicNodes = { master, padGain, bellGain, timers:[padTimer, bellTimer] };
-}
-
-function toggleMusic(){
-  const btn = document.getElementById("music-btn");
-  initAudio();
-  if(!audioCtx){ return; }
-  if(audioCtx.state === "suspended"){ audioCtx.resume(); }
-  if(musicPlaying){
-    // 停止：淡出
-    musicNodes.master.gain.cancelScheduledValues(audioCtx.currentTime);
-    musicNodes.master.gain.setValueAtTime(musicNodes.master.gain.value, audioCtx.currentTime);
-    musicNodes.master.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
-    btn.textContent = "🔇";
-    btn.classList.remove("playing");
-    musicPlaying = false;
-  } else {
-    // 播放：淡入
-    musicNodes.master.gain.cancelScheduledValues(audioCtx.currentTime);
-    musicNodes.master.gain.setValueAtTime(musicNodes.master.gain.value, audioCtx.currentTime);
-    musicNodes.master.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 1.2);
-    btn.textContent = "🎵";
-    btn.classList.add("playing");
-    musicPlaying = true;
-  }
-}
-
 /* ============ 点击音效 ============ */
+let audioCtx = null;
 function playClick(){
-  if(!audioCtx){ return; }
+  if(!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    audioCtx = new AC();
+  }
   if(audioCtx.state === "suspended"){ audioCtx.resume(); }
   const o = audioCtx.createOscillator();
   const g = audioCtx.createGain();
@@ -1216,35 +1090,38 @@ function buildShareCard(){
 function downloadShareCard(){
   buildShareCard().then(canvas => {
     const a = document.createElement("a");
-    a.download = "4i人格图鉴_" + (window.__resultCode||"") + "_" + (window.__resultName||"") + ".png";
-    a.href = canvas.toDataURL("image/png");
+    a.download = "4i人格图鉴_" + (window.__resultCode||"") + "_" + (window.__resultName||"") + ".jpg";
+    a.href = canvas.toDataURL("image/jpeg", 0.92);
     a.click();
   });
 }
 
 // 「保存分享图」统一入口：优先走系统分享（可存相册），兜底走下载
+// 输出 JPG，适配 iOS 与安卓
 function saveShareCard(){
   buildShareCard().then(canvas => {
+    // 输出 JPG（体积更小，相册友好）
     canvas.toBlob(blob => {
       if(!blob) { downloadShareCard(); return; }
-      const file = new File([blob], "4i人格图鉴_" + (window.__resultCode||"") + ".png", {type:"image/png"});
-      // 支持 Web Share API Level 2（可分享文件到相册/微信/其他应用）
+      const fname = "4i人格图鉴_" + (window.__resultCode||"") + "_" + (window.__resultName||"") + ".jpg";
+      const file = new File([blob], fname, {type:"image/jpeg"});
+
+      // 支持 Web Share API Level 2（iOS 15+ / 安卓 Chrome）→ 直接调起系统分享面板，可"存储图像"到相册
       if(navigator.canShare && navigator.canShare({files:[file]})){
         navigator.share({files:[file], title:"4i 人格图鉴"}).catch(()=>{ downloadShareCard(); });
-      } else if(navigator.share){
-        // 仅支持文本分享的环境（如部分 iOS），走下载
-        downloadShareCard();
-      } else {
+      }
+      // 桌面/不支持文件分享的环境 → 直接下载 JPG
+      else {
         downloadShareCard();
       }
-    }, "image/png");
+    }, "image/jpeg", 0.92);
   });
 }
 
 function previewShareCard(){
   buildShareCard().then(canvas => {
     const img = document.getElementById("share-modal-img");
-    img.src = canvas.toDataURL("image/png");
+    img.src = canvas.toDataURL("image/jpeg", 0.92);
     document.getElementById("share-modal").classList.remove("hidden");
   });
 }
