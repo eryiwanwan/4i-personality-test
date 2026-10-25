@@ -96,6 +96,7 @@
   .share-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
   .share-modal .modal-box{background:#fff;border-radius:20px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
   .share-modal .modal-box img{width:100%;border-radius:12px;display:block;}
+  .share-modal .modal-tip{text-align:center;font-size:13px;color:#8a8a8a;margin-top:12px;}
   .share-modal .modal-actions{display:flex;gap:10px;margin-top:16px;}
   .share-modal .modal-actions .btn{flex:1;}
 
@@ -241,9 +242,10 @@
 <div id="share-modal" class="share-modal hidden">
   <div class="modal-box">
     <img id="share-modal-img" alt="分享图预览">
+    <div class="modal-tip">长按上方图片即可保存到相册</div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeShareModal()">关闭</button>
-      <button class="btn primary" onclick="downloadShareCard()">保存图片</button>
+      <button class="btn primary" onclick="saveShareCard()">保存到相册</button>
     </div>
   </div>
 </div>
@@ -1009,6 +1011,25 @@ function downloadShareCard(){
     a.download = "4i人格图鉴_" + (window.__resultCode||"") + "_" + (window.__resultName||"") + ".png";
     a.href = canvas.toDataURL("image/png");
     a.click();
+  });
+}
+
+// 「保存分享图」统一入口：优先走系统分享（可存相册），兜底走下载
+function saveShareCard(){
+  buildShareCard().then(canvas => {
+    canvas.toBlob(blob => {
+      if(!blob) { downloadShareCard(); return; }
+      const file = new File([blob], "4i人格图鉴_" + (window.__resultCode||"") + ".png", {type:"image/png"});
+      // 支持 Web Share API Level 2（可分享文件到相册/微信/其他应用）
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        navigator.share({files:[file], title:"4i 人格图鉴"}).catch(()=>{ downloadShareCard(); });
+      } else if(navigator.share){
+        // 仅支持文本分享的环境（如部分 iOS），走下载
+        downloadShareCard();
+      } else {
+        downloadShareCard();
+      }
+    }, "image/png");
   });
 }
 
