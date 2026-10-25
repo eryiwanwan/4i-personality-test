@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4i 人格图鉴 · 第四爱人格测试</title>
+<style>
+  :root{
+    --bg:#f5f4f0;
+    --card:#ffffff;
+    --ink:#1a1a1a;
+    --muted:#6b6b6b;
+    --line:#e6e4de;
+    --accent:#534AB7;
+    --accent-soft:#EEEDFE;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:640px;margin:0 auto;padding:32px 20px 64px;}
+
+  header{text-align:center;padding:28px 0 8px;}
+  .logo{width:56px;height:56px;border-radius:16px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;margin:0 auto 16px;letter-spacing:-1px;}
+  header h1{font-size:26px;font-weight:700;letter-spacing:-0.5px;}
+  header .sub{color:var(--muted);font-size:14px;margin-top:6px;}
+
+  .progress{margin:24px 0 8px;}
+  .progress .bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden;}
+  .progress .fill{height:100%;background:var(--accent);transition:width .3s ease;}
+  .progress .meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px;}
+
+  .card{background:var(--card);border-radius:20px;padding:28px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .q-label{display:inline-block;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:99px;margin-bottom:14px;}
+  .q-title{font-size:19px;font-weight:600;line-height:1.5;margin-bottom:20px;}
+
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;transition:all .15s ease;background:#fff;}
+  .opt:hover{border-color:var(--accent);background:var(--accent-soft);}
+  .opt .key{flex:none;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted);margin-top:1px;}
+  .opt.selected{border-color:var(--accent);background:var(--accent-soft);}
+  .opt.selected .key{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .opt .txt{font-size:15px;}
+
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-top:22px;}
+  .btn{border:none;border-radius:12px;padding:12px 22px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s ease;font-family:inherit;}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+  .btn.primary{background:var(--accent);color:#fff;}
+  .btn.ghost{background:transparent;color:var(--muted);}
+
+  /* 攻受选择 */
+  .role-pick{display:flex;gap:12px;margin-bottom:24px;}
+  .role-card{flex:1;border:2px solid var(--line);border-radius:16px;padding:20px 12px;text-align:center;cursor:pointer;transition:all .15s ease;background:#fff;}
+  .role-card:hover{border-color:var(--accent);}
+  .role-card.selected{border-color:var(--accent);background:var(--accent-soft);}
+  .role-card .rk-icon{font-size:26px;margin-bottom:8px;}
+  .role-card .rk-name{font-size:17px;font-weight:700;}
+  .role-card .rk-desc{font-size:12px;color:var(--muted);margin-top:4px;}
+
+  /* 结果页 */
+  .result{padding:0;}
+  .res-hero{color:#fff;padding:36px 28px 30px;border-radius:20px 20px 0 0;text-align:center;}
+  .res-hero .avatar{width:96px;height:96px;border-radius:20px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid rgba(255,255,255,.5);box-shadow:0 4px 14px rgba(0,0,0,.18);overflow:hidden;}
+  .res-hero .avatar img{width:100%;height:100%;object-fit:cover;}
+  .res-hero .code{font-size:38px;font-weight:800;letter-spacing:3px;}
+  .res-hero .code span{opacity:.6;font-weight:400;}
+  .res-name{font-size:24px;font-weight:700;margin-top:10px;}
+  .res-name .role{font-size:13px;font-weight:400;opacity:.75;margin-right:6px;}
+  .res-persona{font-size:14px;opacity:.9;margin-top:6px;}
+  .res-sub{font-size:12px;opacity:.75;margin-top:6px;}
+  .res-body{padding:26px 28px 30px;}
+
+  .dim-list{display:flex;flex-direction:column;gap:16px;margin-bottom:26px;}
+  .dim .row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+  .dim .row b{font-weight:600;}
+  .dim .track{height:8px;background:var(--line);border-radius:4px;position:relative;overflow:hidden;}
+  .dim .track .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#d8d5cc;}
+  .dim .track .fill{position:absolute;top:0;bottom:0;border-radius:4px;}
+  .dim .track .dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent);}
+
+  .sec-title{font-size:15px;font-weight:700;margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+  .sec-title::before{content:"";width:4px;height:16px;background:var(--accent);border-radius:2px;}
+  .desc{padding:16px;background:var(--accent-soft);border-radius:14px;font-size:14px;margin-bottom:10px;}
+  .desc.alt{background:#faf9f6;border:1px solid var(--line);}
+  .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+  .tag{font-size:12px;color:var(--accent);background:var(--accent-soft);padding:4px 12px;border-radius:99px;}
+
+  .actions{display:flex;gap:10px;margin-top:26px;}
+  .actions .btn{flex:1;}
+
+  .footer-credit{margin-top:28px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:12px;color:var(--muted);}
+  .x-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;background:#000;border-radius:6px;color:#fff;}
+  .x-icon svg{width:11px;height:11px;}
+  .footnote{text-align:center;font-size:12px;color:var(--muted);margin-top:12px;}
+  .hidden{display:none!important;}
+
+  /* 分享图预览弹窗 */
+  .share-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+  .share-modal .modal-box{background:#fff;border-radius:20px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .share-modal .modal-box img{width:100%;border-radius:12px;display:block;}
+  .share-modal .modal-actions{display:flex;gap:10px;margin-top:16px;}
+  .share-modal .modal-actions .btn{flex:1;}
+
+  /* ===== 响应式适配：手机 / 平板 / 桌面 ===== */
+
+  /* 平板 & 桌面：稍宽留白更舒展 */
+  @media (min-width: 768px){
+    .wrap{max-width:680px;padding:44px 28px 80px;}
+    header h1{font-size:30px;}
+    .card{padding:34px;}
+    .q-title{font-size:21px;}
+    .opt{padding:16px 18px;}
+    .opt .txt{font-size:16px;}
+    .res-hero .avatar{width:112px;height:112px;}
+    .res-name{font-size:26px;}
+    .res-hero .code{font-size:44px;}
+  }
+
+  /* 大屏：整体居中更开阔 */
+  @media (min-width: 1024px){
+    .wrap{max-width:720px;}
+  }
+
+  /* 手机：紧凑布局，放大触控区域 */
+  @media (max-width: 480px){
+    .wrap{padding:20px 14px 48px;}
+    header{padding:16px 0 4px;}
+    .logo{width:48px;height:48px;border-radius:14px;font-size:19px;}
+    header h1{font-size:22px;}
+    header .sub{font-size:13px;}
+    .progress{margin:18px 0 6px;}
+    .card{padding:20px 16px;border-radius:16px;}
+    .q-label{font-size:11px;}
+    .q-title{font-size:17px;margin-bottom:16px;}
+    .opt{padding:12px 14px;gap:10px;border-radius:12px;}
+    .opt .key{width:22px;height:22px;font-size:11px;}
+    .opt .txt{font-size:14px;}
+    .btn{padding:12px 18px;font-size:14px;}
+    .role-pick{gap:10px;}
+    .role-card{padding:16px 8px;}
+    .role-card .rk-name{font-size:15px;}
+    .res-hero{padding:28px 20px 24px;}
+    .res-hero .avatar{width:84px;height:84px;border-radius:18px;}
+    .res-hero .code{font-size:30px;letter-spacing:2px;}
+    .res-name{font-size:21px;}
+    .res-persona{font-size:13px;}
+    .res-body{padding:20px 16px 24px;}
+    .desc{font-size:13px;}
+    .actions{flex-direction:column;}
+    .footer-credit{flex-wrap:wrap;font-size:11px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">4i</div>
+    <h1>4i 人格图鉴</h1>
+    <div class="sub">第四爱人格测试 · 32 题 · 16 种人格</div>
+  </header>
+
+  <!-- 开始页 -->
+  <div id="screen-start" class="card">
+    <p style="font-size:15px;color:var(--muted);text-align:center;margin-bottom:4px;">关于你在关系中的角色与主导方式</p>
+    <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:22px;">32 道题 · 约 3 分钟 · 娱乐之作</p>
+
+    <div class="q-label" style="display:block;text-align:center;margin:0 0 12px;">先告诉我，你更偏向哪一方？</div>
+    <div class="role-pick">
+      <div class="role-card" id="role-attack" onclick="pickRole('attack')">
+        <div class="rk-icon">👑</div>
+        <div class="rk-name">攻方</div>
+        <div class="rk-desc">主导、掌控、主动的一方</div>
+      </div>
+      <div class="role-card" id="role-receive" onclick="pickRole('receive')">
+        <div class="rk-icon">🌙</div>
+        <div class="rk-name">受方</div>
+        <div class="rk-desc">顺从、被引导、被宠的一方</div>
+      </div>
+    </div>
+
+    <button class="btn primary" style="width:100%;" id="btn-start" onclick="start()" disabled>开始测试</button>
+
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:18px;">※ 本测试仅供娱乐参考，结果不构成任何关系、心理或医疗建议。</p>
+  </div>
+
+  <!-- 答题页 -->
+  <div id="screen-quiz" class="hidden">
+    <div class="progress">
+      <div class="bar"><div class="fill" id="bar"></div></div>
+      <div class="meta"><span id="dim-hint"></span><span id="count"></span></div>
+    </div>
+    <div class="card">
+      <div class="q-label" id="q-label"></div>
+      <div class="q-title" id="q-title"></div>
+      <div class="options" id="options"></div>
+      <div class="nav">
+        <button class="btn ghost" id="btn-prev" onclick="prev()">上一题</button>
+        <button class="btn primary" id="btn-next" onclick="next()">下一题</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 结果页 -->
+  <div id="screen-result" class="card result hidden">
+    <div class="res-hero" id="res-hero">
+      <div class="avatar" id="res-avatar"></div>
+      <div class="code" id="res-code"></div>
+      <div class="res-name"><span class="role" id="res-role"></span><span id="res-name"></span></div>
+      <div class="res-persona" id="res-persona"></div>
+      <div class="res-sub" id="res-sub"></div>
+    </div>
+    <div class="res-body">
+      <div class="tag-row" id="res-tags"></div>
+      <div class="dim-list" id="res-dims"></div>
+
+      <div class="sec-title" id="res-desc-title">关于你</div>
+      <div class="desc" id="res-desc"></div>
+
+      <div class="sec-title">相处建议</div>
+      <div class="desc alt" id="res-advice"></div>
+
+      <div class="actions">
+        <button class="btn ghost" onclick="restart()">重新测试</button>
+        <button class="btn primary" onclick="saveShareCard()">保存分享图</button>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn ghost" style="flex:none;margin:0 auto;" onclick="previewShareCard()">预览分享图</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-credit">
+    <span>设计者：</span>
+    <span class="x-icon" title="X">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93 6.07-6.93Zm-1.29 19.5h2.04L6.49 3.24H4.3l13.31 17.41Z"/></svg>
+    </span>
+    <span>小妈不是妈 @eryiwanwan</span>
+  </div>
+  <div class="footnote">仅供娱乐 · 结果不构成任何关系或心理建议</div>
+</div>
+
+<!-- 分享图预览弹窗 -->
+<div id="share-modal" class="share-modal hidden">
+  <div class="modal-box">
+    <img id="share-modal-img" alt="分享图预览">
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeShareModal()">关闭</button>
+      <button class="btn primary" onclick="downloadShareCard()">保存图片</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {d:"L",t:"你设想一段让你心动的「四爱关系」时，脑子里最先蹦出来的画面更接近？",o:["我把对方宠成宝宝，生活里事事我做主、他依赖我","关系里气场和决定权都在我这边，他心甘情愿听话","除了生活上我做主，在床上我也想压他一头","我想在身体上彻底主导他，让他臣服、求饶"]},
+  {d:"L",t:"如果「四爱关系」里只能保留一样，你更舍不得哪一样？",o:["情感上被需要、被依赖的感觉","日常相处里我拿主意、他乖乖跟随的模式","亲密时刻里我占据主动、他配合的默契","身体上那种「我是攻」的实感"]},
+  {d:"L",t:"你对「精神四爱」和「纯四爱」的站队更接近？",o:["精神四爱就很好，床上怎么着无所谓","我偏精神，但偶尔也馋一下身体反转","我偏生理，精神反转是基础但不够","纯四爱，没有 pegging 那味儿就不算完整"]},
+  {d:"L",t:"一段关系里，最能让你「上头」的时刻是？",o:["他红着脸叫我「主人」（之类称呼）的那一刻","他在人前不自觉依赖我、事事问我的时候","他在我怀里软成一滩、任我摆布的时候","他彻底放开、把自己交给我支配的时候"]},
+  {d:"L",t:"你更享受哪一种「反转」带来的快感？",o:["精神上的征服——他心甘情愿臣服于我的气场","角色上的反转——颠覆传统关系角色","亲密里的主动权——我来决定节奏和方式","身体上的主导——道具、姿势、位置都由我定"]},
+  {d:"L",t:"如果对方坚决不接受任何身体上的反转，你的反应更接近？",o:["完全无所谓，精神上能反转就够了","有点遗憾，但也不是不能接受","会认真考虑这段关系还要不要继续","直接劝退，这就是硬性条件"]},
+  {d:"L",t:"「Pegging」这个词在你心里的分量更接近？",o:["听过，但对我来说可有可无","偶尔会幻想，但不强求","挺重要的，是关系里期待的环节","核心需求，我奔着这个来的"]},
+  {d:"L",t:"你理想中的「反转」，边界更接近哪一句？",o:["「生活里我做主，床上按传统来都行」","「情感和日常都由我主导，亲密随意」","「亲密关系里我也要掌握主动」","「从头到脚、从心到身，都要彻底反转」"]},
+  {d:"A",t:"你「主导」一个人时，最自然习惯的画风是？",o:["命令式的，直接告诉他该怎么做、什么该听我的","强势但带着点掌控的爽感，我喜欢看他乖乖照做","温柔地引导，用「哄」和「宠」让他心甘情愿","像照顾一样，我主导是因为我心疼他、想护着他"]},
+  {d:"A",t:"对方不听话、跟你对着干的时候，你更可能？",o:["直接用气场压回去，让他知道谁说了算","冷脸晾着他，等他服软来哄我","软着来，循循善诱把他绕回我这边","顺着他的情绪，先安抚再慢慢拿回主导"]},
+  {d:"A",t:"你更享受哪种「征服感」？",o:["让他怕我、敬我、服从我","让他臣服，甚至享受被我压制的快感","让他依赖我、离不开我的温柔","让他心甘情愿被我宠成废物"]},
+  {d:"A",t:"如果要给自己配一个「气场标签」，你更想要？",o:["铁血、霸道、说一不二","危险、压迫、让人腿软","温柔、治愈、让人心安","宠溺、护短、让人沉溺"]},
+  {d:"A",t:"亲密时刻里，你的「主导」更接近？",o:["强硬、有侵略性，节奏我定，他只能受着","带着点惩罚和掌控的快感，我喜欢他的反应","温柔又缠绵，主导但不伤害，让他舒服","宠着来，以他的感受为先，慢慢引导"]},
+  {d:"A",t:"你希望对方眼里，你是怎样的「攻」？",o:["一个不可违抗的主人","一个危险又让人上瘾的掌控者","一个温柔强大的依靠","一个把他宠到骨子里的守护者"]},
+  {d:"A",t:"对方犯错时，你的第一反应更接近？",o:["必须给点颜色，让他长记性","罚他，用我的方式让他服","先心疼，再说教，软中带硬","舍不得凶，反而想抱抱他"]},
+  {d:"A",t:"一句话形容你心里的「主导」，你选？",o:["「我说了算，你闭嘴」","「你的命，我的」","「跟着我，我保护你」","「把你宠坏，乖乖听我的」"]},
+  {d:"F",t:"你对自己「是攻还是受」这件事，更接近哪种状态？",o:["我很清楚自己的位置，从来不会动摇","基本固定，偶尔有点小波动但不多","看对象和心情，攻受都能接受","我享受来回切换，互攻互受才是我的菜"]},
+  {d:"F",t:"如果对方想反过来主导你一下，你会？",o:["完全接受不了，我就是攻/受，没得商量","勉强接受一点，但心里还是站回自己位置","乐意试试，说不定有惊喜","正中下怀，互攻互受才好玩"]},
+  {d:"F",t:"「纯攻纯受」和「互攻互受」，你更认同？",o:["纯攻纯受，位置定了才安心","我偏纯，但偶尔的互换可以当情趣","我偏互，但也不是每次都要换","互攻互受，这是我最舒服的状态"]},
+  {d:"F",t:"一段关系里，角色的稳定对你来说？",o:["特别重要，位置乱了关系就乱了","挺重要，大部分时候得有个固定模式","不太重要，怎么舒服怎么来","完全不重要，最好天天有新鲜感"]},
+  {d:"F",t:"你会用哪个词描述自己的角色属性？",o:["纯攻 /纯受","偏攻 / 偏受","可攻可受（switch）","互攻互受（都是我的菜）"]},
+  {d:"F",t:"如果圈内人给你贴标签，你希望是？",o:["「纯攻」或「纯受」","「偏攻」或「偏受」","「可攻可受」","「互攻互受」"]},
+  {d:"F",t:"你更能接受哪种关系设定？",o:["我永远是主导方/顺从方，从一而终","大部分时候固定，偶尔互换当情趣","随性切换，看当天谁想当攻","双向奔赴，攻受界限模糊最好"]},
+  {d:"F",t:"你最害怕哪种情况？",o:["关系里角色突然混乱、分不清主次","被要求长期反过来、违背我习惯的位置","只能固定一种、不能偶尔换换","必须固定攻受、不许互攻"]},
+  {d:"E",t:"看上了喜欢的人，你的第一反应更接近？",o:["直接出击，喜欢就追，不藏着掖着","主动释放信号，但等对方先表态","用暧昧和暗示一点点勾对方上钩","我负责勾引，让对方忍不住来追我"]},
+  {d:"E",t:"你「主动」的方式更偏？",o:["直球，想什么说什么，要什么给什么","半明半暗，主动但不失分寸","迂回，用氛围和细节撩拨","诱敌深入，让他自己送上门"]},
+  {d:"E",t:"追求/相处中，你更享受哪个环节？",o:["主动进攻、步步紧逼的快感","主动但把节奏掌控在自己手里","布局引诱、看对方慢慢沦陷的过程","让他追我、又逃不出我手掌心的成就感"]},
+  {d:"E",t:"亲密关系里，你的「主动」更像？",o:["直接上手，想要就表达","主动引导，但会看对方反应调整","用身体语言暗示，让他主动","撩到对方忍不住，反过来被他渴求"]},
+  {d:"E",t:"你更认同哪种说法？",o:["「喜欢就上，别磨叽」","「我主动，但节奏我控」","「我不说，但你要懂」","「让他以为是他主动的」"]},
+  {d:"E",t:"对方一直不开窍，你会？",o:["直接挑明，不浪费时间","继续主动，但逐步加重攻势","换个方式勾引，等他开窍","制造机会让他自己来追"]},
+  {d:"E",t:"你的「攻击性」更接近？",o:["明抢，气场全开，让人无法拒绝","强攻，但张弛有度","暗撩，润物细无声","顶级钓术，让他反过来求我"]},
+  {d:"E",t:"一句话总结你的表达方式？",o:["「我喜欢的，我自己会追」","「我主导，你跟随」","「你不主动，我就勾到你主动」","「让他先动心，我再收网」"]},
+];
+
+const DIMS = { L:{a:"精神",b:"生理"}, A:{a:"霸道",b:"温柔"}, F:{a:"固定",b:"互攻"}, E:{a:"进攻",b:"引诱"} };
+
+// 每型：主色 + 图标路径 + 形象定位语 + 攻方名/受方名
+const TYPES = {
+  "S-D-F-A":{c:"#8A1F2D",icon:"crown",persona:"铁腕的掌舵者",
+    attack:"强势主导型",receive:"忠诚依附型",tags:["精神主导","霸道","固定位置","直球表达"],
+    attackDesc:"你是不折不扣的「强势主导型」，气场足、有主见，喜欢把关系的方向盘牢牢握在手里。你看上的就直球拿下，不绕弯子。你享受的从来不是身体上的征服，而是对方从心理到日常的全盘认同——他要心甘情愿把你当成拿主意的人，事事以你为先，被你安排得明明白白。",
+    receiveDesc:"你是「忠诚依附型」，认准了一个人，就死心塌地跟到底。你把顺从当成一种安全感——对方越有主见、越强势，你越安心，甘愿做那个在背后稳稳托住对方的人。",
+    advice:"你需要一个「有主见但不独断」的对象，太没主见的会让你觉得乏味，太强势的又会跟你针尖对麦芒。找一个愿意信任你、也有自己底线的人，最稳。"},
+  "S-D-F-L":{c:"#2E4A7A",icon:"chess",persona:"冷面的布局者",
+    attack:"冷面布局型",receive:"高冷慢热型",tags:["精神主导","霸道","固定位置","暗撩表达"],
+    attackDesc:"你是「冷面布局型」，面上波澜不惊，心里却把每一步都盘算好了。你不主动追，而是布好一个局，让对方自己一步步走进你的节奏里，最后还以为是自己先动了心。你的霸道藏在冷静之下，一旦对方沦陷，就是你稳稳接住的时候。",
+    receiveDesc:"你是「高冷慢热型」，越是被晾着越上头。表面高冷、拒人千里，心里却早就缴了械，只是不肯先开口。",
+    advice:"你需要一个「吃你欲擒故纵这一套」的对象，直来直去的人可能会被你的慢热搞得很累。找一个懂你沉默里的心思的人，才走得远。"},
+  "S-D-M-A":{c:"#5B2D8B",icon:"swords",persona:"势均力敌的斗士",
+    attack:"强强较量型",receive:"势均力敌型",tags:["精神主导","霸道","可切换","直球表达"],
+    attackDesc:"你是「强强较量型」，喜欢棋逢对手。你不满足于单方面的碾压，而是享受两个有主见的人正面交锋——今天我压你一头，明天你反将我一军。位置可以换，但气势不能输。",
+    receiveDesc:"你同样是「势均力敌型」，被压的时候也要嘴上不服、心里暗爽，享受这种你来我往的拉扯感。",
+    advice:"你需要一个「同样有锋芒、接得住你正面对撞」的对象。太软的人你会觉得没意思，太真的又容易真的吵起来。势均力敌，才最来电。"},
+  "S-D-M-L":{c:"#1F4D3A",icon:"web",persona:"深藏不露的棋手",
+    attack:"试探博弈型",receive:"放钩诱饵型",tags:["精神主导","霸道","可切换","暗撩表达"],
+    attackDesc:"你是「试探博弈型」，表面云淡风轻，实则每一步都是试探和算计。你不明抢，而是用若即若离的引诱让对方主动出手，再在关键处反客为主。关系像一盘棋，你享受互相过招的博弈感。",
+    receiveDesc:"你是「放钩诱饵型」，故意放一点信号让对方来征服你，等对方以为把你拿下时，才发现主客早已对调。",
+    advice:"你需要一个「脑回路跟你对得上」的对象，能读懂你的暗号，也愿意陪你玩这场心理上的推拉。太迟钝或太较真的人，都会很累。"},
+  "S-T-F-A":{c:"#C76A1E",icon:"shield",persona:"温柔的守护者",
+    attack:"温暖守护型",receive:"依恋依赖型",tags:["精神主导","温柔","固定位置","直球表达"],
+    attackDesc:"你是「温暖守护型」，不玩虚的，喜欢就大大方方表达，宠就宠到明面上。你的主导是「护短式」的——我罩着你、疼着你、把你宠成我心尖上的人。位置很清晰：你是那个被依赖、被依靠的一方。",
+    receiveDesc:"你是「依恋依赖型」，享受被温柔又坚定地呵护，被安排得妥妥帖帖，安心做那个被宠着的人。",
+    advice:"你需要一个「吃温柔这一套」的对象，渴望刺激的人可能会觉得你不够「猛」，但懂你的人会把你捧在手心。坦诚直接，是你们之间最好的语言。"},
+  "S-T-F-L":{c:"#B04A6E",icon:"honey",persona:"以柔克刚的渗透者",
+    attack:"温柔渗透型",receive:"撒娇示弱型",tags:["精神主导","温柔","固定位置","暗撩表达"],
+    attackDesc:"你是「温柔渗透型」，用润物细无声的温柔织成一张网，让对方不知不觉地掉进来。你不强势，但你稳稳地掌控着关系的走向——他以为是自己选择留下，其实早就被你一点点渗透、拿捏得死死的。",
+    receiveDesc:"你是「撒娇示弱型」，用软糯和依赖让人不忍心拒绝，被宠得理所当然、心安理得。",
+    advice:"你需要一个「心软又吃软」的对象，越是被温柔对待越容易沦陷的人最适合你。你的温柔是武器，但别把它用成控制。"},
+  "S-T-M-A":{c:"#1D8A6E",icon:"trees",persona:"坦诚的同行者",
+    attack:"坦率并肩型",receive:"松弛从容型",tags:["精神主导","温柔","可切换","直球表达"],
+    attackDesc:"你是「坦率并肩型」，主导但不压制，喜欢势均力敌地互相照顾。你想主动就直说，想被宠也坦诚，位置切换得坦坦荡荡，没有谁高谁低。",
+    receiveDesc:"你是「松弛从容型」，被宠就好好享受，想反过来照顾对方也毫不含糊，切换起来没有半点负担。",
+    advice:"你需要一个「坦诚、不拧巴」的对象，玩不起心机的直爽人最配你。把话说明白，是你们关系里最重要的默契。"},
+  "S-T-M-L":{c:"#C96A9E",icon:"butterfly",persona:"暧昧的舞者",
+    attack:"暧昧拉扯型",receive:"矜持推拉型",tags:["精神主导","温柔","可切换","暗撩表达"],
+    attackDesc:"你是「暧昧拉扯型」，温柔地撩、暧昧地引，享受你来我往的推拉。你不急着一锤定音，而是让关系在暧昧中慢慢升温，位置像跳一支舞，谁主谁随都说不准。",
+    receiveDesc:"你是「矜持推拉型」，嘴上矜持，心里却享受被撩到脸红，又不肯一下子交出自己。",
+    advice:"你需要一个「享受暧昧过程」的对象，急脾气的人会被你熬疯，慢热的人会跟你一起上头。记得暧昧再美，也要有个收尾。"},
+  "P-D-F-A":{c:"#B0152B",icon:"scepter",persona:"彻底的支配者",
+    attack:"支配掌控型",receive:"彻底臣服型",tags:["生理主导","霸道","固定位置","直球表达"],
+    attackDesc:"你是「支配掌控型」，精神上要主导，身体上也要彻底掌控。你想要的不只是他听话，而是让他从身体到心理都臣服——节奏、位置、方式全由你定，他只能承受、求饶、叫你想要的那个称呼。直球果决，绝不拖泥带水。",
+    receiveDesc:"你是「彻底臣服型」，甘愿把自己完全交出去，享受被彻底占有和支配的极致感受。",
+    advice:"你需要一个「慕强且愿意彻底臣服」的对象。身体的掌控更需要信任托底，边界和安全词一定要提前聊清楚，这才是长久的前提。"},
+  "P-D-F-L":{c:"#1C3A5E",icon:"hawk",persona:"冷面猎手",
+    attack:"冷面狩猎型",receive:"外冷内热型",tags:["生理主导","霸道","固定位置","暗撩表达"],
+    attackDesc:"你是「冷面狩猎型」，面上冷，下手却准。你不急着出手，而是用气场和暗示一点点瓦解对方，等他主动送上门，再彻底收服——心理和身体，一个都跑不掉。",
+    receiveDesc:"你是「外冷内热型」，表面矜持抗拒，其实心里渴望被强势地拿下，越被压制越上瘾。",
+    advice:"你需要一个「读得懂你沉默里的信号」的对象，还要有接住你「先冷后热」的能力。别让冷脸把真心挡在了门外。"},
+  "P-D-M-A":{c:"#7A1E1E",icon:"wolf",persona:"强强相搏的野兽",
+    attack:"强强碰撞型",receive:"反扑较量型",tags:["生理主导","霸道","可切换","直球表达"],
+    attackDesc:"你是「强强碰撞型」，身体层面的主导也要势均力敌。你享受两个强势的人互相征服、互相撕扯的酣畅，生理上的主导权也要轮番争夺。",
+    receiveDesc:"你是「反扑较量型」，被压下也要反咬一口，享受这种带着对抗张力的亲密。",
+    advice:"你需要一个「体能和气势都旗鼓相当」的对象，而且彼此都享受这种对抗式的亲密。前提是，这种「较量」永远建立在自愿和默契之上。"},
+  "P-D-M-L":{c:"#2A1B3A",icon:"vortex",persona:"深渊的操盘者",
+    attack:"深层博弈型",receive:"清醒沉沦型",tags:["生理主导","霸道","可切换","暗撩表达"],
+    attackDesc:"你是「深层博弈型」，把生理层面的主导玩成一场高级博弈。你用引诱和试探让对方先沉沦，再在深处彻底掌控，位置可以交换，但谁才是真正的主宰，你心里门儿清。",
+    receiveDesc:"你是「清醒沉沦型」，主动把自己交出去，享受那种清醒地沦陷、被引诱着交出一切的感觉。",
+    advice:"你需要一个「愿意跟你一起玩心理+身体游戏」的对象，信任和默契缺一不可。越深的关系，越需要坦诚的底色。"},
+  "P-T-F-A":{c:"#C94A4A",icon:"heartship",persona:"温柔的主宰",
+    attack:"温柔掌控型",receive:"安心托付型",tags:["生理主导","温柔","固定位置","直球表达"],
+    attackDesc:"你是「温柔掌控型」，身体上要主导，方式却是宠溺和照顾。你想占据主动，但每一个动作都带着疼惜——让他舒服、让他依赖、让他在温柔里彻底沦陷。直接，但绝不粗暴。",
+    receiveDesc:"你是「安心托付型」，享受被温柔地引导和占有，安心把自己交给一个强大又温柔的人。",
+    advice:"你需要一个「吃温柔、又接受你主动」的对象。温柔是最容易让人卸下防备的武器，但也别让对方把温柔误读成软弱。"},
+  "P-T-F-L":{c:"#D47A6E",icon:"candy",persona:"甜言里的猎手",
+    attack:"糖衣渗透型",receive:"软糯诱饵型",tags:["生理主导","温柔","固定位置","暗撩表达"],
+    attackDesc:"你是「糖衣渗透型」，用温柔和甜言一点点瓦解对方，让他心甘情愿、甚至主动渴求被你主导。等他发现时，早已深陷其中。",
+    receiveDesc:"你是「软糯诱饵型」，故意示弱服软，引诱对方来疼你、占有你，享受被温柔掌控的滋味。",
+    advice:"你需要一个「吃软不吃硬、会被温柔拿捏」的对象。甜言是糖，也是刃，别让对方只尝到甜、没读懂你的用心。"},
+  "P-T-M-A":{c:"#2E7DB8",icon:"twin",persona:"双向奔赴的知己",
+    attack:"双向奔赴型",receive:"坦诚互惠型",tags:["生理主导","温柔","可切换","直球表达"],
+    attackDesc:"你是「双向奔赴型」，身体层面的主导也讲究平等和默契。你想主动就直说，想被宠也坦诚，位置切换得像呼吸一样自然，没有谁高谁低。",
+    receiveDesc:"你是「坦诚互惠型」，享受被温柔以待，也乐于反过来温柔地主导，毫无负担。",
+    advice:"你需要一个「坦诚、不装、愿意沟通」的对象。身体的默契建立在充分的沟通和信任上，把需求和边界说清楚，比什么都重要。"},
+  "P-T-M-L":{c:"#A9749E",icon:"ripple",persona:"慢热的织网者",
+    attack:"慢热织网型",receive:"欲拒还迎型",tags:["生理主导","温柔","可切换","暗撩表达"],
+    attackDesc:"你是「慢热织网型」，用暧昧和柔情一点点编织一张网，让对方在缠绵中主动沦陷。位置可以交换，但节奏始终在你的掌心。",
+    receiveDesc:"你是「欲拒还迎型」，享受被温柔地引诱、慢慢沉沦的过程，不愿一下子交底，却一点点被攻陷。",
+    advice:"你需要一个「享受慢热和暧昧、跟你同频」的对象。身体的契合需要耐心和细水长流的经营，别让「慢热」变成「拖延」。"},
+};
+
+// 图标 SVG path
+// 图标：低多边形角色（参考 MBTI 科普图风格）——多面体头+五官+同色系3色阶服装
+// 每个图标是完整的多色 SVG 片段，不再用 currentColor
+const ICONS = {
+  crown: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="4.75" x2="11.23" y2="6.015" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="6.015" x2="14.75" y2="4.75" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.875,2.55 10.075,-0.1999999999999993 12.275,1.4499999999999993" fill="#8A1F2D"/><polygon points="12.275,1.4499999999999993 14.75,-0.47499999999999964 16.675,2.55" fill="#5E121E"/><polygon points="7.875,2.55 16.675,2.55 15.85,4.475 8.15,4.475" fill="#C23A4E"/><circle cx="14.75" cy="-0.47499999999999964" r="0.5" fill="#E8C15A"/><circle cx="10.075" cy="-0.1999999999999993" r="0.4" fill="#E8C15A"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#8A1F2D"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#C23A4E"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#5E121E"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#3A0B13"/><polygon points="7.2,15.5 9.8,14.5 9.2,17.5" fill="#5E121E"/><polygon points="16.8,15.5 14.2,14.5 14.8,17.5" fill="#C23A4E"/></g>',
+  chess: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.34" y1="9.7" x2="12.66" y2="9.7" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 10.35,1.1750000000000007 14.75,1.7249999999999996 16.95,4.475 15.3,5.85 7.6,5.85" fill="#2E4A7A"/><polygon points="10.35,1.1750000000000007 14.75,1.7249999999999996 16.95,4.475" fill="#1B2E50"/><polygon points="7.05,4.2 10.35,1.1750000000000007 9.25,5.575" fill="#4E6FA6"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#2E4A7A"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#4E6FA6"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#1B2E50"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#101E38"/><polygon points="7.2,14.8 9.8,14 9.4,16.8" fill="#4E6FA6"/><polygon points="16.8,14.8 14.2,14 14.6,16.8" fill="#1B2E50"/><polygon points="16.6,5.5 18.2,5.5 17.4,7.2" fill="#C7CDD6"/><polygon points="16.6,5.5 17.4,7.2 17.4,8.5" fill="#8A9099"/><polygon points="17.4,7.2 18.2,5.5 18.2,7.2 18.2,8.5" fill="#C7CDD6"/></g>',
+  swords: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="4.75" x2="11.23" y2="6.015" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="6.015" x2="14.75" y2="4.75" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 16.4,5.85 7.6,5.85" fill="#5B2D8B"/><polygon points="12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 14.75,5.3" fill="#3A1B5C"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 9.8,5.3" fill="#7E4FAE"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#5B2D8B"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#7E4FAE"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#3A1B5C"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#22103A"/><polygon points="7.2,15.5 9.8,14.5 9.2,17.5" fill="#3A1B5C"/><polygon points="16.8,15.5 14.2,14.5 14.8,17.5" fill="#7E4FAE"/><polygon points="6.2,15.5 9.4,13.8 9,11" fill="#C7CDD6"/><polygon points="9,11 9.4,13.8 10,12" fill="#8A9099"/><polygon points="9,11 10,12 10.4,10.4" fill="#E8C15A"/></g>',
+  web: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.34" y1="9.7" x2="12.66" y2="9.7" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="6.775,4.2 12,1.4499999999999993 17.225,4.2 16.675,6.125 7.325,6.125" fill="#1F4D3A"/><polygon points="12,1.4499999999999993 17.225,4.2 14.75,5.575" fill="#0F2E22"/><polygon points="6.775,4.2 12,1.4499999999999993 9.25,5.575" fill="#3A7058"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#1F4D3A"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#3A7058"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#0F2E22"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#0A1F17"/><polygon points="7.2,14.8 9.8,14 9.4,16.8" fill="#3A7058"/><polygon points="16.8,14.8 14.2,14 14.6,16.8" fill="#0F2E22"/><polygon points="6.8,2.8 8.6,4 7.8,5.4" fill="#C7CDD6"/><polygon points="6.8,2.8 7.8,5.4 6.4,4.8" fill="#8A9099"/><line x1="6.8" y1="2.8" x2="9.4" y2="6.2" stroke="#C7CDD6" stroke-width="0.3" stroke-linecap="round"/></g>',
+  shield: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 16.4,5.85 7.6,5.85" fill="#C76A1E"/><polygon points="12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 14.75,5.3" fill="#8A4410"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 9.8,5.3" fill="#E39A4A"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#C76A1E"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#E39A4A"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#8A4410"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#5C2C08"/><polygon points="6.8,15 10,14 9.4,17.5" fill="#E39A4A"/><polygon points="17.2,15 14,14 14.6,17.5" fill="#8A4410"/><polygon points="10.4,14.4 13.6,14.4 13,18.4 11,18.4" fill="#C7CDD6"/><polygon points="10.4,14.4 13.6,14.4 12,16" fill="#E4E8EE"/></g>',
+  honey: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 16.4,5.85 7.6,5.85" fill="#B04A6E"/><polygon points="12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 14.75,5.3" fill="#7C2C49"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 9.8,5.3" fill="#D17C98"/><circle cx="12" cy="0.07499999999999929" r="0.7" fill="#B04A6E"/><circle cx="12" cy="0.07499999999999929" r="0.35" fill="#7C2C49"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#B04A6E"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#D17C98"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#7C2C49"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#4E1A2D"/><polygon points="7.4,15.4 9.8,14.6 9.2,17.4" fill="#D17C98"/><polygon points="16.6,15.4 14.2,14.6 14.8,17.4" fill="#7C2C49"/><polygon points="9.2,15 14.8,15 14.4,18 9.6,18" fill="#E8C15A"/><polygon points="9.2,15 14.8,15 12,16.5" fill="#F0D98A"/></g>',
+  trees: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 16.4,5.85 7.6,5.85" fill="#1D8A6E"/><polygon points="12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 14.75,5.3" fill="#0E5A47"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 9.8,5.3" fill="#42AE92"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#1D8A6E"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#42AE92"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#0E5A47"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#073A2D"/><polygon points="15.6,14.6 18.2,13.4 17.6,15.6" fill="#1D8A6E"/><polygon points="7.4,15 9.8,14.4 9.2,17.2" fill="#0E5A47"/></g>',
+  butterfly: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 12,1.4499999999999993 16.95,4.2 16.675,10.25 14.75,9.15 9.25,9.15 7.325,10.25" fill="#C96A9E"/><polygon points="12,1.4499999999999993 16.95,4.2 16.675,10.25" fill="#934573"/><polygon points="7.05,4.2 12,1.4499999999999993 7.325,10.25" fill="#E096BC"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#C96A9E"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#E096BC"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#934573"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#5E2A49"/><polygon points="7.4,12.4 10,13.8 9.4,16" fill="#E096BC"/><polygon points="16.6,12.4 14,13.8 14.6,16" fill="#934573"/><polygon points="16.2,4.6 18.4,2.8 19.4,5" fill="#E8C15A"/><polygon points="16.2,4.6 19.4,5 17.6,5.8" fill="#F0D98A"/><polygon points="16.2,4.6 17.6,5.8 16.8,5.4" fill="#E8C15A"/></g>',
+  scepter: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="4.75" x2="11.23" y2="6.015" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="6.015" x2="14.75" y2="4.75" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.875,2.55 10.075,-0.1999999999999993 12.275,1.4499999999999993" fill="#B0152B"/><polygon points="12.275,1.4499999999999993 14.75,-0.47499999999999964 16.675,2.55" fill="#7C0B1B"/><polygon points="7.875,2.55 16.675,2.55 15.85,4.475 8.15,4.475" fill="#D84A5E"/><circle cx="14.75" cy="-0.47499999999999964" r="0.5" fill="#E8C15A"/><circle cx="10.075" cy="-0.1999999999999993" r="0.4" fill="#E8C15A"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#B0152B"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#D84A5E"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#7C0B1B"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#4E0510"/><polygon points="15.4,14.5 17.2,11.8 16.8,14.6" fill="#B0152B"/><polygon points="7.4,15 9.8,14.4 9.2,17.2" fill="#7C0B1B"/><line x1="16.8" y1="12.5" x2="18.4" y2="17.5" stroke="#C7CDD6" stroke-width="0.6" stroke-linecap="round"/><circle cx="18.4" cy="17.5" r="0.6" fill="#E8C15A"/><circle cx="16.8" cy="12.5" r="0.8" fill="#E8C15A"/></g>',
+  hawk: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.34" y1="9.7" x2="12.66" y2="9.7" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="8.15,2.2750000000000004 15.85,2.2750000000000004 15.025,4.2 8.975,4.2" fill="#1C3A5E"/><polygon points="5.675000000000001,4.475 18.325,4.475 15.85,5.85 8.15,5.85" fill="#0E2238"/><polygon points="8.15,2.2750000000000004 12,2.2750000000000004 10.35,4.2" fill="#33587F"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#1C3A5E"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#33587F"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#0E2238"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#08162A"/><polygon points="15.6,14.6 18.2,13.4 17.6,15.6" fill="#1C3A5E"/><polygon points="7.4,15 9.8,14.4 9.2,17.2" fill="#0E2238"/><line x1="16.8" y1="13.2" x2="19.6" y2="11.4" stroke="#C7CDD6" stroke-width="0.7" stroke-linecap="round"/><line x1="19.6" y1="11.4" x2="19" y2="13.6" stroke="#C7CDD6" stroke-width="0.7" stroke-linecap="round"/><line x1="19.6" y1="11.4" x2="19.8" y2="9.6" stroke="#8A9099" stroke-width="0.35" stroke-linecap="round"/><line x1="19.6" y1="11.4" x2="18.6" y2="9.2" stroke="#8A9099" stroke-width="0.35" stroke-linecap="round"/></g>',
+  wolf: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="4.75" x2="11.23" y2="6.015" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="6.015" x2="14.75" y2="4.75" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 16.4,5.85 7.6,5.85" fill="#7A1E1E"/><polygon points="12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 14.75,5.3" fill="#50100F"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 9.8,5.3" fill="#A6443F"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#7A1E1E"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#A6443F"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#50100F"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#320808"/><polygon points="7.2,15.5 9.8,14.5 9.2,17.5" fill="#50100F"/><polygon points="16.8,15.5 14.2,14.5 14.8,17.5" fill="#A6443F"/></g>',
+  vortex: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.34" y1="9.7" x2="12.66" y2="9.7" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="6.775,4.2 12,1.4499999999999993 17.225,4.2 16.675,6.125 7.325,6.125" fill="#2A1B3A"/><polygon points="12,1.4499999999999993 17.225,4.2 14.75,5.575" fill="#170D20"/><polygon points="6.775,4.2 12,1.4499999999999993 9.25,5.575" fill="#46305E"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#2A1B3A"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#46305E"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#170D20"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#0C0612"/><polygon points="7.4,15.4 9.8,14.6 9.2,17.4" fill="#46305E"/><polygon points="16.6,15.4 14.2,14.6 14.8,17.4" fill="#170D20"/><polygon points="9.2,2.4 11.6,2.0 10.8,3.6" fill="#E8C15A"/><polygon points="9.2,2.4 10.8,3.6 9.2,4.0" fill="#8A9099"/><polygon points="11.6,2.0 13.4,2.8 10.8,3.6" fill="#F0D98A"/></g>',
+  heartship: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 16.4,5.85 7.6,5.85" fill="#C94A4A"/><polygon points="12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 14.75,5.3" fill="#8F2C2C"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 9.8,5.3" fill="#E27A76"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#C94A4A"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#E27A76"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#8F2C2C"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#5E1A1A"/><polygon points="7.4,15.4 9.8,14.6 9.2,17.4" fill="#E27A76"/><polygon points="16.6,15.4 14.2,14.6 14.8,17.4" fill="#8F2C2C"/><polygon points="12,14.2 10.2,15.6 10.8,17.8 13.2,17.8" fill="#E25A5A"/><polygon points="12,14.2 13.8,15.6 13.2,17.8 10.8,17.8" fill="#B83838"/></g>',
+  candy: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 16.4,5.85 7.6,5.85" fill="#D47A6E"/><polygon points="12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 14.75,5.3" fill="#9E4F44"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 9.8,5.3" fill="#EBA99E"/><circle cx="12" cy="0.07499999999999929" r="0.7" fill="#D47A6E"/><circle cx="12" cy="0.07499999999999929" r="0.35" fill="#9E4F44"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#D47A6E"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#EBA99E"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#9E4F44"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#6B332A"/><polygon points="15.6,14.6 18.2,13.4 17.6,15.6" fill="#D47A6E"/><polygon points="7.4,15 9.8,14.4 9.2,17.2" fill="#9E4F44"/><polygon points="16.2,12.2 18,12.2 17.1,13.8" fill="#E25A5A"/><polygon points="16.2,12.2 17.1,13.8 16.2,15.4" fill="#B83838"/><polygon points="18,12.2 18,13.8 17.1,13.8" fill="#F08A8A"/></g>',
+  twin: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.12" y1="9.59" x2="12.88" y2="9.81" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 16.4,5.85 7.6,5.85" fill="#2E7DB8"/><polygon points="12,1.7249999999999996 14.2,1.4499999999999993 16.95,4.2 14.75,5.3" fill="#18527E"/><polygon points="7.05,4.2 9.8,1.4499999999999993 12,1.7249999999999996 9.8,5.3" fill="#5AA3D4"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#2E7DB8"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#5AA3D4"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#18527E"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#0D3754"/><polygon points="7.4,12.4 10,13.8 9.4,16" fill="#5AA3D4"/><polygon points="16.6,12.4 14,13.8 14.6,16" fill="#18527E"/><polygon points="12,14.2 10.2,15.6 10.8,17.8 13.2,17.8" fill="#E25A5A"/><polygon points="12,14.2 13.8,15.6 13.2,17.8 10.8,17.8" fill="#B83838"/></g>',
+  ripple: '<g><polygon points="6.9399999999999995,4.09 8.7,2.2750000000000004 12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 16.675,9.15 14.75,11.625 12,12.175 9.25,11.625 7.325,9.15" fill="#EFC8A6"/><polygon points="8.7,2.2750000000000004 12,2.0 10.35,5.3 8.15,4.75" fill="#F5D7B4"/><polygon points="12,2.0 15.3,2.2750000000000004 17.060000000000002,4.09 15.85,6.4" fill="#D9A878"/><polygon points="16.675,9.15 14.75,11.625 13.65,8.6" fill="#C08E5E"/><circle cx="10.24" cy="7.225" r="0.45" fill="#3A2A1E"/><circle cx="13.76" cy="7.225" r="0.45" fill="#3A2A1E"/><line x1="9.25" y1="5.135" x2="11.23" y2="5.574999999999999" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><line x1="12.77" y1="5.574999999999999" x2="14.75" y2="5.135" stroke="#4A3524" stroke-width="0.5" stroke-linecap="round"/><polygon points="12,7.665 11.56,8.875 12.44,8.875" fill="#C08E5E"/><line x1="11.34" y1="9.7" x2="12.66" y2="9.7" stroke="#7A4A2A" stroke-width="0.4" stroke-linecap="round"/><polygon points="7.05,4.2 12,1.4499999999999993 16.95,4.2 16.675,10.25 14.75,9.15 9.25,9.15 7.325,10.25" fill="#A9749E"/><polygon points="12,1.4499999999999993 16.95,4.2 16.675,10.25" fill="#78496E"/><polygon points="7.05,4.2 12,1.4499999999999993 7.325,10.25" fill="#CA9CBE"/><polygon points="8.4,13.5 15.6,13.5 14.52,20 9.48,20" fill="#A9749E"/><polygon points="8.4,13.5 12,13.5 10.92,20 9.48,20" fill="#CA9CBE"/><polygon points="12,13.5 15.6,13.5 14.52,20 13.08,20" fill="#78496E"/><polygon points="9.48,20 14.52,20 12,20.6" fill="#4E2E46"/><polygon points="7.4,15.4 9.8,14.6 9.2,17.4" fill="#CA9CBE"/><polygon points="16.6,15.4 14.2,14.6 14.8,17.4" fill="#78496E"/></g>',
+};
+
+const LETTER_NAMES = {S:"精神",P:"生理",D:"霸道",T:"温柔",F:"固定",M:"互攻",A:"进攻",L:"引诱"};
+const DIM_META = [
+  {key:"L",pos0:"精神",pos1:"生理"},
+  {key:"A",pos0:"霸道",pos1:"温柔"},
+  {key:"F",pos0:"固定",pos1:"互攻"},
+  {key:"E",pos0:"进攻",pos1:"引诱"},
+];
+
+let idx = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let role = null; // 'attack' | 'receive'
+
+function $(id){return document.getElementById(id);}
+
+function pickRole(r){
+  role = r;
+  $("role-attack").classList.toggle("selected", r==="attack");
+  $("role-receive").classList.toggle("selected", r==="receive");
+  $("btn-start").disabled = false;
+}
+
+function start(){
+  idx = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  $("screen-start").classList.add("hidden");
+  $("screen-result").classList.add("hidden");
+  $("screen-quiz").classList.remove("hidden");
+  render();
+}
+
+function render(){
+  const q = QUESTIONS[idx];
+  const dimKey = q.d;
+  const dimLabel = DIMS[dimKey];
+  $("q-label").textContent = "维度 " + dimKey + " · " + dimLabel.a + " / " + dimLabel.b;
+  $("q-title").textContent = q.t;
+  $("dim-hint").textContent = "第 " + (idx+1) + " / " + QUESTIONS.length + " 题";
+  $("count").textContent = "维度 " + dimKey;
+  $("bar").style.width = ((idx) / QUESTIONS.length * 100) + "%";
+
+  const optBox = $("options");
+  optBox.innerHTML = "";
+  q.o.forEach((txt, i) => {
+    const div = document.createElement("div");
+    div.className = "opt";
+    if (answers[idx] === i) div.classList.add("selected");
+    const key = document.createElement("div");
+    key.className = "key";
+    key.textContent = String.fromCharCode(65 + i);
+    const span = document.createElement("span");
+    span.className = "txt";
+    span.textContent = txt;
+    div.appendChild(key);
+    div.appendChild(span);
+    div.onclick = () => { answers[idx] = i; render(); };
+    optBox.appendChild(div);
+  });
+
+  $("btn-prev").disabled = idx === 0;
+  $("btn-next").textContent = idx === QUESTIONS.length - 1 ? "查看结果" : "下一题";
+  $("btn-next").disabled = answers[idx] === null;
+}
+
+function prev(){ if(idx > 0){ idx--; render(); } }
+function next(){
+  if(answers[idx] === null) return;
+  if(idx < QUESTIONS.length - 1){ idx++; render(); }
+  else{ showResult(); }
+}
+
+function showResult(){
+  const scores = {L:0,A:0,F:0,E:0};
+  QUESTIONS.forEach((q, i) => {
+    const a = answers[i];
+    if(a === null) return;
+    scores[q.d] += [ -2, -1, 1, 2 ][a];
+  });
+  const L = scores.L < 0 ? "S" : "P";
+  const A = scores.A < 0 ? "D" : "T";
+  const F = scores.F < 0 ? "F" : "M";
+  const E = scores.E < 0 ? "A" : "L";
+  const typeKey = L+"-"+A+"-"+F+"-"+E;
+  const t = TYPES[typeKey];
+  const isAttack = role === "attack";
+
+  // 结果只显示对应一方
+  const displayName = isAttack ? t.attack : t.receive;
+  const displayDesc = isAttack ? t.attackDesc : t.receiveDesc;
+  const roleLabel = isAttack ? "攻方" : "受方";
+
+  // 顶部英雄区（用每型主色）
+  $("res-hero").style.background = t.c;
+  const iconPrefix = isAttack ? "攻" : "受";
+  $("res-avatar").innerHTML = `<img src="icons/${iconPrefix}_${typeKey}.png" alt="${displayName}" style="width:100%;height:100%;object-fit:contain;">`;
+  $("res-code").innerHTML = [L,A,F,E].map(c=>`<span>${c}</span>`).join("");
+  $("res-role").textContent = roleLabel;
+  $("res-name").textContent = displayName;
+  $("res-persona").textContent = "「" + t.persona + "」";
+  $("res-sub").textContent = LETTER_NAMES[L] + " × " + LETTER_NAMES[A] + " × " + LETTER_NAMES[F] + " × " + LETTER_NAMES[E];
+
+  // 标签配色跟随主色
+  document.documentElement.style.setProperty("--accent", t.c);
+  document.documentElement.style.setProperty("--accent-soft", t.c + "1A");
+  $("res-tags").innerHTML = t.tags.map(x => `<span class="tag">${x}</span>`).join("");
+
+  // 四维强度条
+  $("res-dims").innerHTML = DIM_META.map(m => {
+    const s = scores[m.key];
+    const pct = Math.max(0, Math.min(100, (s + 16) / 32 * 100));
+    const dirLabel = s < 0 ? m.pos0 : m.pos1;
+    const abs = Math.abs(s);
+    return `<div class="dim">
+      <div class="row"><span>${m.key} · ${m.pos0} / ${m.pos1}</span><b>${dirLabel} ${abs>=8?'（强）':abs>=3?'（中）':'（弱）'}</b></div>
+      <div class="track"><div class="mid"></div><div class="fill" style="left:${pct<50?pct:50}%;right:${pct>=50?(100-pct):50}%;background:${t.c};"></div><div class="dot" style="left:${pct}%;border-color:${t.c};"></div></div>
+    </div>`;
+  }).join("");
+
+  $("res-desc-title").textContent = "关于你（" + roleLabel + "）";
+  $("res-desc").textContent = displayDesc;
+  $("res-advice").textContent = t.advice;
+
+  window.__resultCode = typeKey;
+  window.__resultName = displayName;
+  window.__resultScores = scores;
+
+  $("screen-quiz").classList.add("hidden");
+  $("screen-result").classList.remove("hidden");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function restart(){
+  role = null;
+  $("role-attack").classList.remove("selected");
+  $("role-receive").classList.remove("selected");
+  $("btn-start").disabled = true;
+  document.documentElement.style.setProperty("--accent", "#534AB7");
+  document.documentElement.style.setProperty("--accent-soft", "#EEEDFE");
+  $("screen-quiz").classList.add("hidden");
+  $("screen-result").classList.add("hidden");
+  $("screen-start").classList.remove("hidden");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function share(){
+  const code = window.__resultCode || "";
+  const name = window.__resultName || "";
+  const roleLabel = role === "attack" ? "攻方" : "受方";
+  const text = "我在「4i 人格图鉴」测出了 " + code + " " + roleLabel + "·" + name + "，你也来测测？";
+  if(navigator.share){
+    navigator.share({title:"4i 人格图鉴", text}).catch(()=>{});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>{ alert("结果已复制，去粘贴分享吧"); });
+  } else {
+    prompt("复制这段文字分享：", text);
+  }
+}
+
+/* ============ 分享图生成（Canvas 渲染长图） ============ */
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines){
+  const chars = Array.from(text);
+  let line = "";
+  let lines = [];
+  const noStart = '，。、；：！？）》」』"\'';
+  for(let i=0;i<chars.length;i++){
+    const c = chars[i];
+    const test = line + c;
+    if(ctx.measureText(test).width > maxWidth && line){
+      lines.push(line);
+      line = c;
+      if(lines.length >= maxLines) break;
+    } else {
+      line = test;
+    }
+  }
+  if(line && lines.length < maxLines) lines.push(line);
+  // 行首禁则标点处理
+  for(let i=1;i<lines.length;i++){
+    if(lines[i] && noStart.includes(lines[i][0])){
+      const prev = lines[i-1];
+      const moved = prev[prev.length-1];
+      lines[i-1] = prev.slice(0,-1);
+      lines[i] = moved + lines[i];
+    }
+  }
+  return lines;
+}
+
+function buildShareCard(){
+  return new Promise((resolve) => {
+    const typeKey = window.__resultCode;
+    const t = TYPES[typeKey];
+    const isAttack = role === "attack";
+    const roleLabel = isAttack ? "攻方" : "受方";
+    const displayName = isAttack ? t.attack : t.receive;
+    const displayDesc = isAttack ? t.attackDesc : t.receiveDesc;
+    const codeArr = typeKey.split("-");
+    const iconPrefix = isAttack ? "攻" : "受";
+    const iconSrc = "icons/" + iconPrefix + "_" + typeKey + ".png";
+
+    // 画布尺寸（长图）
+    const W = 750;
+    const pad = 40;
+    const avatarSize = 120;
+
+    // 预加载头像 + 二维码，都就绪后再绘制
+    const SHARE_QR = "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";
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const qrImg = new Image();
+    let avatarReady = false, qrReady = false, avatarImg = null;
+    function tryDraw(){
+      if(avatarReady && qrReady){ draw(avatarImg, qrImg); }
+    }
+    img.onload = () => { avatarImg = img; avatarReady = true; tryDraw(); };
+    img.onerror = () => { avatarImg = null; avatarReady = true; tryDraw(); };
+    img.src = iconSrc;
+    qrImg.onload = () => { qrReady = true; tryDraw(); };
+    qrImg.onerror = () => { qrReady = true; tryDraw(); };
+    qrImg.src = "data:image/png;base64," + SHARE_QR;
+
+    function draw(avatarImg, qrImg){
+      const canvas = document.createElement("canvas");
+      const dpr = 2; // 高清输出
+
+      const accent = t.c;
+
+      // 先测文本行数（需要 ctx）
+      const tmpCtx = document.createElement("canvas").getContext("2d");
+      tmpCtx.font = "400 16px -apple-system, 'PingFang SC', sans-serif";
+      const descLines = wrapText(tmpCtx, displayDesc, 0, 0, W - pad*2 - 36, 34, 5);
+      tmpCtx.font = "400 15px -apple-system, 'PingFang SC', sans-serif";
+      const adviceLines = wrapText(tmpCtx, t.advice, 0, 0, W - pad*2 - 36, 30, 4);
+
+      // 布局高度
+      const heroH = 200;
+      const tagsH = 34 + 24;
+      const dimsH = 4 * (24 + 26) + 12;
+      const descTitleH = 26 + 8;
+      const descH = descLines.length * 34 + 24 + 16;
+      const adviceTitleH = 26 + 8;
+      const adviceH = adviceLines.length * 30 + 24;
+      const qrH = 160;
+      const footerH = 60;
+      const totalH = heroH + tagsH + dimsH + descTitleH + descH + adviceTitleH + adviceH + qrH + footerH + 40;
+
+      canvas.width = W * dpr;
+      canvas.height = Math.ceil(totalH * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+      ctx.textBaseline = "alphabetic";
+
+      // 背景
+      ctx.fillStyle = "#f5f4f0";
+      ctx.fillRect(0, 0, W, totalH);
+
+      // ===== 顶部英雄区 =====
+      ctx.fillStyle = accent;
+      roundRect(ctx, pad, pad, W - pad*2, heroH, 24);
+      ctx.fill();
+
+      // 头像（白底圆角，垂直居中于英雄区）
+      const ax = pad + 32;
+      const ay = pad + (heroH - avatarSize) / 2;
+      ctx.fillStyle = "#fff";
+      roundRect(ctx, ax, ay, avatarSize, avatarSize, 22);
+      ctx.fill();
+      if(avatarImg){
+        ctx.save();
+        roundRect(ctx, ax, ay, avatarSize, avatarSize, 22);
+        ctx.clip();
+        ctx.drawImage(avatarImg, ax, ay, avatarSize, avatarSize);
+        ctx.restore();
+      }
+
+      // 类型代码 + 名字（头像右侧）
+      const tx = ax + avatarSize + 28;
+      let ty = ay + 8;
+      ctx.fillStyle = "rgba(255,255,255,.85)";
+      ctx.font = "600 16px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText(roleLabel, tx, ty);
+      ty += 40;
+      ctx.fillStyle = "#fff";
+      ctx.font = "800 40px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText(codeArr.join(" · "), tx, ty);
+      ty += 46;
+      ctx.fillStyle = "#fff";
+      ctx.font = "700 30px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText(displayName, tx, ty);
+
+      // 定位语
+      ty += 38;
+      ctx.fillStyle = "rgba(255,255,255,.85)";
+      ctx.font = "400 16px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText("「" + t.persona + "」", tx, ty);
+
+      let curY = pad + heroH + 20;
+
+      // ===== 标签 =====
+      let tagX = pad;
+      ctx.font = "500 15px -apple-system, 'PingFang SC', sans-serif";
+      t.tags.forEach(tag => {
+        ctx.fillStyle = accent + "1A";
+        ctx.font = "500 15px -apple-system, 'PingFang SC', sans-serif";
+        const tw = ctx.measureText(tag).width + 28;
+        roundRect(ctx, tagX, curY, tw, 34, 17);
+        ctx.fill();
+        ctx.fillStyle = accent;
+        ctx.fillText(tag, tagX + 14, curY + 22);
+        tagX += tw + 10;
+      });
+      curY += 34 + 24;
+
+      // ===== 四维强度条 =====
+      const scores = window.__resultScores || {L:0,A:0,F:0,E:0};
+      const dims = DIM_META.map(m => {
+        const s = scores[m.key];
+        const pct = Math.max(0, Math.min(100, (s + 16) / 32 * 100));
+        const dirLabel = s < 0 ? m.pos0 : m.pos1;
+        const abs = Math.abs(s);
+        const strength = abs>=8?'（强）':abs>=3?'（中）':'（弱）';
+        return {key:m.key, pos0:m.pos0, pos1:m.pos1, pct, dirLabel, strength};
+      });
+      dims.forEach(d => {
+        // 标签行
+        ctx.fillStyle = "#6b6b6b";
+        ctx.font = "500 15px -apple-system, 'PingFang SC', sans-serif";
+        ctx.fillText(d.key + " · " + d.pos0 + " / " + d.pos1, pad, curY + 16);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#1a1a1a";
+        ctx.font = "700 15px -apple-system, 'PingFang SC', sans-serif";
+        ctx.fillText(d.dirLabel + d.strength, W - pad, curY + 16);
+        ctx.textAlign = "left";
+        curY += 24;
+
+        // 轨道
+        const trackY = curY + 4;
+        ctx.fillStyle = "#e6e4de";
+        roundRect(ctx, pad, trackY, W - pad*2, 10, 5);
+        ctx.fill();
+        // 填充
+        const fillW = (W - pad*2) * d.pct / 100;
+        ctx.fillStyle = accent;
+        if(d.pct < 50){
+          roundRect(ctx, pad + (W-pad*2)*d.pct/100, trackY, (W-pad*2)*(50-d.pct)/100, 10, 5);
+          ctx.fill();
+        } else {
+          roundRect(ctx, pad + (W-pad*2)*0.5, trackY, (W-pad*2)*(d.pct-50)/100, 10, 5);
+          ctx.fill();
+        }
+        // 圆点
+        const dotX = pad + (W-pad*2)*d.pct/100;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(dotX, trackY+5, 9, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        curY += 26;
+      });
+      curY += 12;
+
+      // ===== 关于你 =====
+      ctx.fillStyle = accent;
+      roundRect(ctx, pad, curY-6, 4, 20, 2);
+      ctx.fill();
+      ctx.fillStyle = "#1a1a1a";
+      ctx.font = "700 18px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText("关于你（" + roleLabel + "）", pad + 14, curY + 8);
+      curY += 26;
+
+      // 描述卡片
+      ctx.fillStyle = accent + "14";
+      roundRect(ctx, pad, curY, W - pad*2, descLines.length*34 + 24, 16);
+      ctx.fill();
+      ctx.fillStyle = "#333";
+      ctx.font = "400 16px -apple-system, 'PingFang SC', sans-serif";
+      descLines.forEach((ln, i) => {
+        ctx.fillText(ln, pad + 18, curY + 30 + i*34);
+      });
+      curY += descLines.length*34 + 24 + 16;
+
+      // ===== 相处建议 =====
+      ctx.fillStyle = accent;
+      roundRect(ctx, pad, curY-6, 4, 20, 2);
+      ctx.fill();
+      ctx.fillStyle = "#1a1a1a";
+      ctx.font = "700 18px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText("相处建议", pad + 14, curY + 8);
+      curY += 26;
+
+      ctx.fillStyle = "#faf9f6";
+      ctx.strokeStyle = "#e6e4de";
+      ctx.lineWidth = 1;
+      roundRect(ctx, pad, curY, W - pad*2, adviceLines.length*30 + 24, 16);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#444";
+      ctx.font = "400 15px -apple-system, 'PingFang SC', sans-serif";
+      adviceLines.forEach((ln, i) => {
+        ctx.fillText(ln, pad + 18, curY + 28 + i*30);
+      });
+      curY += adviceLines.length*30 + 24;
+
+      // ===== 二维码区域 =====
+      curY += 16;
+      const qrCardY = curY;
+      const qrCardH = 140;
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#e6e4de";
+      ctx.lineWidth = 1;
+      roundRect(ctx, pad, qrCardY, W - pad*2, qrCardH, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      const qrReady = qrImg;
+      if(qrReady && qrReady.width){
+        const qrSize = 104;
+        const qrX = pad + 24;
+        const qrY = qrCardY + (qrCardH - qrSize) / 2;
+        ctx.save();
+        roundRect(ctx, qrX - 6, qrY - 6, qrSize + 12, qrSize + 12, 8);
+        ctx.clip();
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12);
+        ctx.drawImage(qrReady, qrX, qrY, qrSize, qrSize);
+        ctx.restore();
+      }
+
+      const qrTextX = pad + 24 + 116 + 20;
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#1a1a1a";
+      ctx.font = "700 20px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText("扫码测一测", qrTextX, qrCardY + 46);
+      ctx.fillStyle = "#6b6b6b";
+      ctx.font = "400 14px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText("长按识别二维码", qrTextX, qrCardY + 74);
+      ctx.fillStyle = "#9a9a9a";
+      ctx.font = "400 13px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText("测出你的 4i 人格类型", qrTextX, qrCardY + 98);
+      ctx.textAlign = "left";
+
+      curY += qrCardH + 16;
+
+      // ===== 底部署名 =====
+      curY += 14;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#6b6b6b";
+      ctx.font = "400 14px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText("4i 人格图鉴 · 设计者：小妈不是妈 @eryiwanwan", W/2, curY);
+      curY += 22;
+      ctx.fillStyle = "#9a9a9a";
+      ctx.font = "400 12px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillText("仅供娱乐 · 结果不构成任何关系或心理建议", W/2, curY);
+      ctx.textAlign = "left";
+
+      resolve(canvas);
+    }
+  });
+}
+
+function downloadShareCard(){
+  buildShareCard().then(canvas => {
+    const a = document.createElement("a");
+    a.download = "4i人格图鉴_" + (window.__resultCode||"") + "_" + (window.__resultName||"") + ".png";
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  });
+}
+
+function previewShareCard(){
+  buildShareCard().then(canvas => {
+    const img = document.getElementById("share-modal-img");
+    img.src = canvas.toDataURL("image/png");
+    document.getElementById("share-modal").classList.remove("hidden");
+  });
+}
+
+function closeShareModal(){
+  document.getElementById("share-modal").classList.add("hidden");
+}
+
+// 点击弹窗背景关闭
+document.addEventListener("DOMContentLoaded", function(){
+  const modal = document.getElementById("share-modal");
+  modal.addEventListener("click", function(e){
+    if(e.target === modal) closeShareModal();
+  });
+});
+</script>
+</body>
+</html>
